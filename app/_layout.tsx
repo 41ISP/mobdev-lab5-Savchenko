@@ -9,7 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { FlatList, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { customAlphabet} from 'nanoid/non-secure';
-import { isEnabled } from 'react-native/Libraries/Performance/Systrace';
+
 
 
 
@@ -26,9 +26,7 @@ export default function RootLayout() {
   });
 
   const toggleSwitch = (id: string) => {
-    tasks.map((tsk) => {
-      if(tsk === id)
-    })
+    setTasks((prev) => prev.map((tsk) => tsk.id === id ? {...tsk, stateDone: !tsk.stateDone}: tsk))
   }
   const nanoid = customAlphabet("adcdefghijklmnopqrstuvwxyz0123456789",10)
 
@@ -94,8 +92,7 @@ export default function RootLayout() {
             <Text>
               {item.task}
             </Text>
-            <Switch value={isEnabled} onValueChange={toggleSwitch} thumbColor={isEnabled ? '#33FF42' : '#FF0000'}
-            trackColor={{false: '#fe3333', true: '#52FF5F'}}/>
+            <Switch value={item.stateDone} onValueChange={() => toggleSwitch(item.id)}/>
             <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteTask(item.id)}>
               <Text>Delete</Text>
             </TouchableOpacity>
@@ -108,16 +105,11 @@ export default function RootLayout() {
 }
 const styles = StyleSheet.create ({
   container: {
-    marginTop: 200,
-    flexDirection: 'column',
+    flex: 1,
+    backgroundColor: '#fff',
     alignItems: 'center',
-    alignSelf: 'center',
-    alignContent: 'center',
-    maxHeight: 300,
-    minHeight: 300,
-    maxWidth: 300,
-    minWidth: 300,
-    borderRadius: 50,
+    justifyContent:  'center'
+    
   },
   input: {
     borderWidth: 1,
@@ -138,7 +130,7 @@ const styles = StyleSheet.create ({
 
   },
   list: {
-    // textAlign: 'center'
+    flexDirection: 'row',
   },
   deleteButton: {
 
