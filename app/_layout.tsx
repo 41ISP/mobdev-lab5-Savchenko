@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useUnstableGlobalHref } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -18,16 +18,6 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [task, setTask] = useState('');
-  
-  
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  const toggleSwitch = (id: string) => {
-    setTasks((prev) => prev.map((tsk) => tsk.id === id ? {...tsk, stateDone: !tsk.stateDone}: tsk))
-  }
   const nanoid = customAlphabet("adcdefghijklmnopqrstuvwxyz0123456789",10)
 
   const initialTasks = [
@@ -37,7 +27,26 @@ export default function RootLayout() {
       stateDone: false,
     }
   ] 
+
   const [tasks, setTasks] = useState([...initialTasks])
+  const [filteredTasks, setFilteredTasks] = useState([...tasks])
+  const [showCompleted, setShowCompleted] = useState(false)
+  const colorScheme = useColorScheme();
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  useEffect(() => {
+    if (showCompleted) {
+    setFilteredTasks(tasks.filter(task => task.stateDone === showCompleted))
+    } else {
+      setFilteredTasks(tasks)
+    }
+  }, [showCompleted, tasks])
+
+  const toggleSwitch = (id: string) => {
+    setTasks((prev) => prev.map((tsk) => tsk.id === id ? {...tsk, stateDone: !tsk.stateDone}: tsk))
+  }
 
   useEffect(() => {
     if (loaded) {
@@ -85,10 +94,10 @@ export default function RootLayout() {
         <TouchableOpacity style={styles.button} onPress={handlePress}>
           <Text>Add task</Text>
         </TouchableOpacity>
-        <FlatList style={styles.list} data={tasks} keyExtractor={(item) => item.id} renderItem={(
+        <FlatList style={styles.list} data={filteredTasks} keyExtractor={(item) => item.id} renderItem={(
           { item } ,
         ) => (
-          <View>
+          <View style={styles.itemContainer}>
             <Text>
               {item.task}
             </Text>
@@ -98,7 +107,11 @@ export default function RootLayout() {
             </TouchableOpacity>
           </View>
         )}
-        />
+        /> 
+        <View>
+          <Text>Filter tasks</Text>
+          <Switch onValueChange = {setShowCompleted} value={showCompleted}/>
+        </View>
       </View>
     </ThemeProvider>
   );
@@ -130,9 +143,11 @@ const styles = StyleSheet.create ({
 
   },
   list: {
-    flexDirection: 'row',
   },
   deleteButton: {
 
-  }
+  },
+  itemContainer: {
+    flexDirection: 'row'
+  },
 })
