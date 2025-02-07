@@ -24,7 +24,7 @@ export const useTaskStore = create<ITasksStore>()(
             addTasks: (task) => set((state) => ({...state, tasks: [...state.tasks, task]})),
             deleteAllTasks: () => set((state) => ({...state, tasks: []})),
             deleteTask: (id) => set((state) =>({...state, tasks: state.tasks.filter((task) => task.id !== id)})),
-            toggleTask: (id) => set((state) => ({...state, tasks: state.tasks.map((tsk) => tsk.id === id ? {...tsk, stateDone: !tsk.doneState}: tsk)}))
+            toggleTask: (id) => set((state) => ({...state, tasks: state.tasks.map((tsk) => tsk.id === id ? {...tsk, doneState: !tsk.doneState}: tsk)}))
         }),
         {
             name: "TasksStore",
