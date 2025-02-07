@@ -13,15 +13,12 @@ import useTaskStore from '@/store';
 import { BorderlessButton } from 'react-native-gesture-handler';
 
 
-
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [task, setTask] = useState('');
   const nanoid = customAlphabet("adcdefghijklmnopqrstuvwxyz0123456789", 10)
-
+  const MAX_LENGTH = 15;
   const [showCompleted, setShowCompleted] = useState(false)
   const colorScheme = useColorScheme();
   const {toggleTask, deleteTask, addTasks, tasks} = useTaskStore()
@@ -30,7 +27,6 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
-
 
 
   useEffect(() => {
@@ -54,12 +50,14 @@ export default function RootLayout() {
   }
 
   const handleSubmit = () => {
-    if (task.trim()) {
+    if (task.trim() && task.length <= MAX_LENGTH ) {
       addTasks(
-
         { id: nanoid(), name: task, doneState: false }
       )
+    } else {
+      alert(`Task name must be ${MAX_LENGTH} characters or less.`)
     }
+    setTask('')
   }
 
   
@@ -135,7 +133,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   deleteButton: {
-    backgroundColor: '#FF5733',
+    backgroundColor: '#E53935',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
