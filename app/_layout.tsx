@@ -8,7 +8,8 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { FlatList, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { customAlphabet} from 'nanoid/non-secure';
+import { customAlphabet } from 'nanoid/non-secure';
+import useTaskStore from '@/store';
 
 
 
@@ -18,35 +19,25 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [task, setTask] = useState('');
-  const nanoid = customAlphabet("adcdefghijklmnopqrstuvwxyz0123456789",10)
+  const nanoid = customAlphabet("adcdefghijklmnopqrstuvwxyz0123456789", 10)
 
-  const initialTasks = [
-    {
-      task: "123",
-      id: nanoid(),
-      stateDone: false,
-    }
-  ] 
-
-  const [tasks, setTasks] = useState([...initialTasks])
-  const [filteredTasks, setFilteredTasks] = useState([...tasks])
   const [showCompleted, setShowCompleted] = useState(false)
   const colorScheme = useColorScheme();
+  const { toggleTask, deleteTask, addTasks, tasks } = useTaskStore()
+  const [filteredTasks, setFilteredTasks] = useState([...tasks])
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   useEffect(() => {
     if (showCompleted) {
-    setFilteredTasks(tasks.filter(task => task.stateDone === showCompleted))
+      setFilteredTasks(tasks.filter(task => task.doneState === showCompleted))
     } else {
       setFilteredTasks(tasks)
     }
   }, [showCompleted, tasks])
 
-  const toggleSwitch = (id: string) => {
-    setTasks((prev) => prev.map((tsk) => tsk.id === id ? {...tsk, stateDone: !tsk.stateDone}: tsk))
-  }
+
 
   useEffect(() => {
     if (loaded) {
@@ -60,23 +51,10 @@ export default function RootLayout() {
 
   const handleSubmit = () => {
     if (task.trim()) {
-      setTasks([
-        ...tasks,
-        {id: nanoid(), task: task, stateDone: false}
-      ])
-    }
-  }
+      addTasks(
 
-  const handleDeleteTask = (id: string) => {
-     setTasks(tasks.filter((task) => task.id !== id))
-  }
-
-  const handlePress = () => {
-    if (task.trim()) {
-      setTasks([
-        ...tasks,
-        {id: nanoid(), task: task, stateDone: false}
-      ])
+        { id: nanoid(), name: task, doneState: false }
+      )
     }
   }
 
@@ -85,44 +63,44 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <View style={styles.container}>
-        <TextInput style={styles.input} 
-        placeholder='Enter the task:' 
-        value={task}
-        onChangeText={setTask}
-        onSubmitEditing={handleSubmit}
-        returnKeyType='done'/>
-        <TouchableOpacity style={styles.button} onPress={handlePress}>
+        <TextInput style={styles.input}
+          placeholder='Enter the task:'
+          value={task}
+          onChangeText={setTask}
+          onSubmitEditing={handleSubmit}
+          returnKeyType='done' />
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text>Add task</Text>
         </TouchableOpacity>
         <FlatList style={styles.list} data={filteredTasks} keyExtractor={(item) => item.id} renderItem={(
-          { item } ,
+          { item },
         ) => (
           <View style={styles.itemContainer}>
             <Text>
-              {item.task}
+              {item.name}
             </Text>
-            <Switch value={item.stateDone} onValueChange={() => toggleSwitch(item.id)}/>
-            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteTask(item.id)}>
+            <Switch value={item.doneState} onValueChange={() => toggleTask(item.id)} />
+            <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTask(item.id)}>
               <Text>Delete</Text>
             </TouchableOpacity>
           </View>
         )}
-        /> 
+        />
         <View>
           <Text>Filter tasks</Text>
-          <Switch onValueChange = {setShowCompleted} value={showCompleted}/>
+          <Switch onValueChange={setShowCompleted} value={showCompleted} />
         </View>
       </View>
     </ThemeProvider>
   );
 }
-const styles = StyleSheet.create ({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent:  'center'
-    
+    justifyContent: 'center'
+
   },
   input: {
     borderWidth: 1,
